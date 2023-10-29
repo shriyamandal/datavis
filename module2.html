@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <style>
+        .centered-text {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="centered-text">
+        <h1><a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">The Economic
+                Guide to Picking a College Major</a></h1>
+        <div>By Ben Casselman on Sept. 12, 2024</div>
+        <div>Remixed by Shriya Mandal on Oct. 29, 2023 </div>
+        <div><i>Article from FiveThirtyEight</i></div>
+        <div><i><a href="https://github.com/fivethirtyeight/data/tree/master/college-majors">Dataset from
+                    FiveThirtyEight's GitHub</a></i></div>
+
+    </div>
+</body>
+
+</html>
+
+<br>
+
+<div>
+    The millions of American college students heading back to campus this month face a grim reality: A college degree is
+    no guarantee of economic success.
+    But through their choice of major, they can take at least some steps toward boosting their odds.
+    </br>
+    </br>
+    The link between education and earnings is notoriously fraught, with cause and effect often difficult to
+    disentangle.
+    But a look at detailed data on college graduates by major reveals some clear messages: Don't be pre-med if you
+    aren't planning to go to medical school;
+    don't assume that all "STEM" - science, technology, engineering and math - majors are the same; and if you study
+    drama, be prepared to wait tables.
+    </br>
+    </br>
+    Those lessons might seem obvious, but there's evidence that many students aren't learning them.
+    By far the most popular major in recent years, psychology, is also one of the lowest-paying and leaves more than
+    half its graduates working in jobs that don't require a college degree.
+    Many of those students no doubt would have chosen to study psychology even if they had known about their uncertain
+    career prospects. But research has consistently shown that many colleges and universities do little to push their
+    students to make informed choices about what to study.
+    Today's college students need to choose a major that maximizes their chances of graduating, and minimizes their
+    chances of ending up in that bottom 25 percent, where they would have been better off skipping college, at least
+    financially.
+    </br></br>
+    To understand how big a financial difference choice of major can make, look at the chart below that separates out
+    income by major category. The median salary for an engineering major is $57,000, while the median for a
+    psychology/social work major is $30,000.
+    Further discrepanies can be seen looking at the 25th and 7th percentile of the salary distribution below for the
+    major categories. When separating out by major, graduates with a degree in petroleum engineering, the highest-paying
+    major, earned a whopping $110,000. That's five times the $22,000 median salary at the bottom end of the spectrum,
+    library science. But that's just for graduates lucky enough to land full-time jobs.
+
+</div>
+
+<div></div>
+<html>
+
+<head>
+    <style>
+        .first-visualization-container {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .tooltip2 {
+            position: absolute;
+            visibility: hidden;
+            background-color: white;
+            padding: 5px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            left: 0;
+            top: 0;
+        }
+
+        .grid2 line {
+            stroke: #ccc;
+            shape-rendering: crispEdges;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+
+<body>
+    <div class="first-visualization-container">
+        <div id="chart2"></div>
+        <div class="tooltip2" id="tooltip2"></div>
+        <script>
+            let hoveredCategory2 = null;
+
+            const margin2 = { top2: 50, right2: 50, bottom2: 50, left2: 180 };
+            const width2 = 800 - margin2.left2 - margin2.right2;
+            const height2 = 500 - margin2.top2 - margin2.bottom2;
+
+            const svg2 = d3.select("#chart2")
+                .append("svg")
+                .attr("width", width2 + margin2.left2 + margin2.right2)
+                .attr("height", height2 + margin2.top2 + margin2.bottom2)
+                .append("g")
+                .attr("transform", `translate(${margin2.left2}, ${margin2.top2})`);
+
+            d3.csv("recent-grads.csv", function (d2) {
+                return {
+                    major2: d2['Major'],
+                    median_salary2: +d2['Median'],
+                    percentile_25th2: +d2['P25th'],
+                    percentile_75th2: +d2['P75th'],
+                    major_category2: d2['Major_category']
+                };
+            }).then(function (data2) {
+                const colorScale2 = d3.scaleOrdinal()
+                    .domain(data2.map(d2 => d2.major_category2))
+                    .range(['green']);
+
+                const x2 = d3.scaleLinear()
+                    .domain([0, 70000]).nice()
+                    .range([0, width2]);
+
+                const categories2 = Array.from(new Set(data2.map(d2 => d2.major_category2)));
+                const categoryData2 = categories2.map(category2 => {
+                    const categoryMajors2 = data2.filter(d2 => d2.major_category2 === category2);
+                    return {
+                        major_category2: category2,
+                        median_salary2: d3.median(categoryMajors2, d2 => d2.median_salary2),
+                        percentile_25th2: d3.median(categoryMajors2, d2 => d2.percentile_25th2),
+                        percentile_75th2: d3.median(categoryMajors2, d2 => d2.percentile_75th2)
+                    };
+                });
+
+                categoryData2.sort((a2, b2) => b2.median_salary2 - a2.median_salary2);
+
+                const y2 = d3.scaleBand()
+                    .domain(categoryData2.map(d2 => d2.major_category2))
+                    .range([0, height2])
+                    .padding(0.1);
+
+                svg2.append("text")
+                    .attr("x", width2 / 2)
+                    .attr("y", -20)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "18px")
+                    .style("font-family", "Arial")
+                    .style("font-weight", "bold")
+                    .text("Median Salaries by Major Category");
+
+                svg2.append("text")
+                    .attr("x", width2 / 2)
+                    .attr("y", height2 + 40)
+                    .attr("text-anchor", "middle")
+                    .style("font-family", "Arial")
+                    .style("font-size", "12px")
+                    .style("font-weight", "bold")
+                    .text("Median Salary (USD)");
+
+                const xAxisGrid2 = d3.axisBottom(x2)
+                    .tickSize(-height2)
+                    .tickFormat('');
+
+                svg2.append('g')
+                    .attr('class', 'grid2')
+                    .attr('transform', `translate(0, ${height2})`)
+                    .call(xAxisGrid2);
+
+                svg2.selectAll(".bar2")
+                    .data(categoryData2)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar2")
+                    .attr("x", d2 => x2(d2.percentile_25th2))
+                    .attr("y", d2 => y2(d2.major_category2))
+                    .attr("width", d2 => x2(d2.percentile_75th2) - x2(d2.percentile_25th2))
+                    .attr("height", y2.bandwidth())
+                    .style("fill", d2 => colorScale2(d2.major_category2))
+                    .on("mouseover", showTooltip2)
+                    .on("mouseout", hideTooltip2)
+                    .on("mouseenter", (event, d2) => {
+                        hoveredCategory2 = d2.major_category2;
+                        svg2.selectAll(".bar2")
+                            .style("opacity", o2 => (o2.major_category2 === hoveredCategory2 ? 1 : 0.3));
+                    });
+
+                svg2.selectAll(".median-line2")
+                    .data(categoryData2)
+                    .enter()
+                    .append("line")
+                    .attr("class", "median-line2")
+                    .attr("x1", d2 => x2(d2.median_salary2))
+                    .attr("x2", d2 => x2(d2.median_salary2))
+                    .attr("y1", d2 => y2(d2.major_category2))
+                    .attr("y2", d2 => y2(d2.major_category2) + y2.bandwidth())
+                    .style("stroke", "black");
+
+                function showTooltip2(event, d2) {
+                    const category2 = d2.major_category2;
+                    const p25th2 = d2.percentile_25th2;
+                    const median2 = d2.median_salary2;
+                    const p75th2 = d2.percentile_75th2;
+
+                    const tooltip2 = d3.select("#tooltip2");
+                    tooltip2.style("left", (event.pageX + 10) + "px");
+                    tooltip2.style("top", (event.pageY - 20) + "px");
+                    tooltip2.style("visibility", "visible");
+                    tooltip2.html(`
+                        <strong>Category:</strong> ${category2}<br>
+                        <strong>25th Percentile Salary:</strong> ${p25th2}<br>
+                        <strong>Median Salary:</strong> ${median2}<br>
+                        <strong>75th Percentile Salary:</strong> ${p75th2}
+                    `);
+                }
+
+                function hideTooltip2() {
+                    hoveredCategory2 = null;
+                    svg2.selectAll(".bar2").style("opacity", 1);
+                    const tooltip2 = d3.select("#tooltip2");
+                    tooltip2.style("visibility", "hidden");
+                }
+
+                svg2.append("g")
+                    .attr("transform", `translate(0, ${height2})`)
+                    .call(d3.axisBottom(x2));
+
+                svg2.append("g")
+                    .call(d3.axisLeft(y2));
+            });
+        </script>
+    </div>
+</body>
+
+</html>
+
+<div>Of course, it's a safe bet that not many freshmen are struggling to decide between becoming librarians or becoming
+    petroleum engineers. But even in more closely related fields, there are clear differences in earnings between
+    majors. Actuarial science majors earn more than accounting majors; public policy majors out-earn history majors; and
+    court reporting is a better earnings bet than criminology.</div>
+
+<h2><b>Engineering Pays, but not all STEM does </b>
+</h2>
+
+<div>
+    Petroleum engineering is a crazy outlier - its $110,000 median salary is nearly 50 percent higher than the
+    runner-up, mining and mineral engineering. The premium reflects the tremendous demand for oilfield engineers in the
+    midst of the recent drilling boom, as well as the tough conditions and remote working environments that many
+    petroleum engineers must endure, especially early in their careers. There may also be a built-in risk premium: The
+    energy industry is notorious for its boom-bust volatility, so there's no guarantee that those newly minted petroleum
+    engineers will still be pulling down six-figure salaries if oil prices suddenly crater.
+</div>
+
+</br>
+<div>
+    But engineering pays even for those not cut out for life in the oilfield. A remarkable 17 of the 20 highest-paying
+    majors for young graduates fall under the broad "engineering" category. The lowest-paying engineering majors -
+    "mechanical engineering related technologies" and "miscellaneous engineering technologies" - still pay a median wage
+    of $40,000, which puts them well into the top half of all majors in terms of earnings, and better than all but the
+    very best-paying social sciences.
+</div>
+
+</br>
+<div>However, not all STEM majors pay. Politicians love to tout the importance of science, technology, engineering and
+    math majors. But when it comes to earnings, the "S" majors don't really belong with the "TEM" ones.
+    Engineering majors are nearly all high-paying. So are most computer and math majors, and math-heavy sciences like
+    astrophysics. But many sciences, particularly the life sciences, pay below the overall median for recent college
+    graduates. Students who major in neuroscience, meteorology, biology and ecology all stand to make $35,000 or less -
+    and that's if they can get a full-time job, which many can't.
+    These graduates may have been better off picking certain non STEM majors.
+    A surprising relevation is that the share of women in a STEM major is correlated with lower median pay - bringing up
+    the question whether women are more likely to pick lower paying fields, or whether salaries lower as more women
+    enter a major. </div>
+
+<div class="second-visualization-container">
+    <html>
+
+    <head>
+        <script src="https://d3js.org/d3.v6.js"></script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+
+            .tooltip {
+                position: absolute;
+                visibility: hidden;
+                background-color: white;
+                padding: 5px;
+                font-size: 12px;
+                font-family: Arial, sans-serif;
+                z-index:
+            }
+
+            .legend-item {
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                margin-bottom: 5px;
+                font-size: 12px;
+                font-family: Arial, sans-serif;
+            }
+
+            .legend-item .color-box {
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }
+
+            .legend-container {
+                text-align: left;
+                border: 1px solid #919191;
+                padding: 10px;
+                float: right;
+                position: relative;
+                top: -300px;
+                left: -400px;
+            }
+
+            .grid line {
+                stroke: #ccc;
+                shape-rendering: crispEdges;
+            }
+
+            .x-axis text {
+                fill: black;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="chart"></div>
+        <div class="tooltip" id="tooltip"></div>
+        <div class="legend-container" id="legend"></div>
+        <script>
+            const margin = { top: 50, right: 50, bottom: 50, left: 80 },
+                width = 600 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
+
+            const svg = window.d3.select("#chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+            d3.csv("women-stem.csv", function (d) {
+                return {
+                    men: +d['Men'],
+                    women: +d['Women'],
+                    share_women: +d['ShareWomen'] * 100,
+                    major: d['Major'],
+                    median_salary: +d['Median'],
+                    major_category: d['Major_category']
+                };
+            }).then(function (data) {
+                data = data.filter(d => d.share_women > 0 && d.median_salary > 0);
+
+                const colorScale = d3.scaleOrdinal()
+                    .domain(data.map(d => d.major_category))
+                    .range(d3.schemeSet1);
+
+                const x = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.share_women)])
+                    .nice()
+                    .range([0, width]);
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.median_salary) + 10])
+                    .nice()
+                    .range([height, 0]);
+
+                svg.append("text")
+                    .attr("transform", `translate(${width / 2}, ${height + 40})`)
+                    .style("text-anchor", "middle")
+                    .style("font-size", "12px")
+                    .style("font-weight", "bold")
+                    .text("Share of Women in Major (%)");
+
+                svg.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 10 - margin.left)
+                    .attr("x", 0 - height / 2)
+                    .attr("dy", "1em")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "12px")
+                    .style("font-weight", "bold")
+                    .text("Median Salary (USD)");
+
+                svg.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", -20)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "18px")
+                    .style("font-family", "Arial")
+                    .style("font-weight", "bold")
+                    .text("Median Salaries by STEM Major");
+
+                svg.append("g")
+                    .attr("class", "grid")
+                    .attr("transform", `translate(0, ${height})`)
+                    .call(d3.axisBottom(x).tickSize(-height).tickFormat(""));
+
+                svg.append("g")
+                    .attr("class", "grid")
+                    .call(d3.axisLeft(y).tickSize(-width).tickFormat(""));
+
+                svg.append("g")
+                    .attr("transform", `translate(0, ${height})`)
+                    .call(d3.axisBottom(x));
+
+                svg.append("g")
+                    .call(d3.axisLeft(y));
+
+                const tooltip = window.d3.select("#tooltip");
+
+                const circles = svg.selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => x(d.share_women))
+                    .attr("cy", d => y(d.median_salary))
+                    .attr("r", 5)
+                    .style("fill", d => colorScale(d.major_category))
+                    .on("mouseover", function (event, d) {
+                        const [xPosition, yPosition] = window.d3.pointer(event);
+                        tooltip.style("top", (event.pageY - 10) + "px")
+                            .style("left", (event.pageX + 10) + "px");
+                        d3.selectAll("circle")
+                            .style("opacity", 0.3);
+                        d3.select(this)
+                            .style("opacity", 1);
+                        tooltip.style("visibility", "visible")
+                            .html(d.major);
+                        console.log("tooltip triggered");
+                        console.log(d.major);
+                    })
+                    .on("mousemove", function (event) {
+                        const [xPosition, yPosition] = window.d3.pointer(event);
+                        tooltip.style("top", (event.pageY - 10) + "px")
+                            .style("left", (event.pageX + 10) + "px");
+                    })
+                    .on("mouseout", function () {
+                        d3.selectAll("circle")
+                            .style("opacity", 1);
+                        tooltip.style("visibility", "hidden");
+                    });
+
+                const legend = d3.select("#legend");
+                const legendData = Array.from(new Set(data.map(d => d.major_category)));
+
+                legendData.forEach((category, i) => {
+                    const legendItem = legend.append("div")
+                        .attr("class", "legend-item")
+                        .on("mouseover", function () {
+                            d3.selectAll("circle")
+                                .style("opacity", 0.3);
+                            d3.selectAll("circle")
+                                .filter(d => d.major_category === category)
+                                .style("opacity", 1);
+                        })
+                        .on("mouseout", function () {
+                            d3.selectAll("circle")
+                                .style("opacity", 1);
+                        });
+
+
+                    legendItem.append("div")
+                        .attr("class", "color-box")
+                        .style("background-color", colorScale(category));
+
+                    legendItem.append("div")
+                        .text(category);
+                });
+            });
+        </script>
+    </body>
+
+    </html>
+</div>
+
+<h2>Avoiding Unemployment</h2>
+
+<div>Petroleum engineers have one other big advantage over other graduates: They're much more likely to find jobs. Their
+    unemployment rate was 1.8 percent, and of those with jobs, 87 percent worked at least 35 hours per week. Library
+    science graduates, on the other hand, had a 10.5 percent unemployment rate, and just 71 percent worked full-time.
+    However this isn't the case for all engineering majors. In fact, the major with the highest unemployment rate is an
+    engineering major - nuclear engineering.</div>
+<br>
+<div>On the whole, though, the correlation between earnings and unemployment is surprisingly weak. Actuarial scientists
+    are among the best-paid graduates, but also have an unusually high unemployment rate of nearly 10 percent. Teachers
+    of all stripes may not make much, but they generally find employment.</div>
+<div class="third-visualization-container">
+    <html>
+
+    <head>
+        <script src="https://d3js.org/d3.v6.js"></script>
+        <style>
+            .tooltip3 {
+                position: absolute;
+                visibility: hidden;
+                background-color: white;
+                padding: 5px;
+                font-size: 12px;
+                font-family: Arial, sans-serif;
+                left: 0;
+                top: 0;
+                z-index: 1;
+            }
+
+            .grid3 line3 {
+                stroke: #ccc;
+                shape-rendering: crispEdges;
+            }
+
+            .legend3 {
+                font-size: 12px;
+                font-family: Arial, sans-serif;
+                margin-left: 800px;
+                margin-top: -1900px;
+                border: 1px solid #ccc;
+                display: inline-block;
+                padding: 10px;
+                position: absolute;
+            }
+
+            .legend-color3 {
+                width: 20px;
+                height: 20px;
+                display: inline-block;
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="chart3"></div>
+        <div class="tooltip3" id="tooltip3"></div>
+        <div class="legend3" id="legend3"></div>
+        <script>
+            const margin3 = { top: 50, right: 50, bottom: 50, left: 400 };
+            const width3 = 800 - margin3.left - margin3.right;
+            const height3 = 2000 - margin3.top - margin3.bottom;
+
+            const svg3 = window.d3.select("#chart3")
+                .append("svg")
+                .attr("width", width3 + margin3.left + margin3.right)
+                .attr("height", height3 + margin3.top + margin3.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin3.left}, ${margin3.top})`);
+
+            d3.csv("recent-grads.csv", function (d3) {
+                return {
+                    major3: d3['Major'],
+                    major_category3: d3['Major_category'],
+                    unemployment_rate3: +d3['Unemployment_rate'] * 100
+                };
+            }).then(function (data3) {
+                data3 = data3.filter(d3 => d3.unemployment_rate3 > 0);
+                data3.sort((a3, b3) => b3.unemployment_rate3 - a3.unemployment_rate3);
+
+                const customColors3 = [
+                    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
+                    "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+                    "#bcbd22", "#17becf", "#fdc33d", "#ff6e54",
+                    "#80e0a1", "#8da9c4", "#eec0c6", "#cbb4d3"
+                ];
+
+                const colorScale3 = d3.scaleOrdinal(customColors3);
+                const majors3 = data3.map(d3 => d3.major3);
+                const categories3 = data3.map(d3 => d3.major_category3);
+
+                const maxUnemploymentRate3 = d3.max(data3, d3 => d3.unemployment_rate3);
+
+                const x3 = d3.scaleLinear()
+                    .domain([0, maxUnemploymentRate3])
+                    .range([0, width3]);
+
+                const y3 = d3.scaleBand()
+                    .domain(majors3)
+                    .range([0, height3])
+                    .padding(0.1);
+
+                svg3.append("text")
+                    .attr("x", width3 / 2)
+                    .attr("y", -20)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "18px")
+                    .style("font-family", "Arial")
+                    .style("font-weight", "bold")
+                    .text("Unemployment Rate by Major");
+
+                svg3.append("text")
+                    .attr("x", width3 / 2)
+                    .attr("y", height3 + 40)
+                    .attr("text-anchor", "middle")
+                    .style("font-family", "Arial")
+                    .style("font-size", "12px")
+                    .style("font-weight", "bold")
+                    .text("Unemployment Rate (%)");
+
+                svg3.selectAll(".bar3")
+                    .data(data3)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar3")
+                    .attr("x", 0)
+                    .attr("y", d3 => y3(d3.major3))
+                    .attr("width", d3 => x3(d3.unemployment_rate3))
+                    .attr("height", y3.bandwidth())
+                    .style("fill", (d3, i) => colorScale3(categories3[i]))
+                    .on("mouseover", showTooltip3)
+                    .on("mouseout", hideTooltip3);
+
+                function showTooltip3(event, d3) {
+                    const major3 = d3.major3;
+                    const category3 = d3.major_category3;
+                    const unemploymentRate3 = d3.unemployment_rate3;
+
+                    const tooltip3 = window.d3.select("#tooltip3");
+                    tooltip3.style("left", (event.pageX + 10) + "px");
+                    tooltip3.style("top", (event.pageY - 20) + "px");
+                    tooltip3.style("visibility", "visible");
+                    tooltip3.html(`
+                    <strong>Major:</strong> ${major3}<br>
+                    <strong>Category:</strong> ${category3}<br>
+                    <strong>Unemployment Rate:</strong> ${(unemploymentRate3).toFixed(2)}%
+                `);
+                }
+
+                function hideTooltip3() {
+                    const tooltip3 = window.d3.select("#tooltip3");
+                    tooltip3.style("visibility", "hidden");
+                }
+
+                svg3.append("g")
+                    .attr("transform", `translate(0, ${height3})`)
+                    .call(d3.axisBottom(x3).ticks(10));
+
+                svg3.append("g")
+                    .call(d3.axisLeft(y3));
+
+                const uniqueCategories3 = Array.from(new Set(categories3));
+                const legend3 = d3.select("#legend3");
+
+                legend3.append("div")
+                    .text("Filter by Major Category:")
+                    .style("font-weight", "bold");
+
+                legend3.append("div")
+                    .html('<div class="legend-color3" style="background-color: #ccc;"></div> Show All Majors')
+                    .on("click", resetChart);
+
+                function resetChart() {
+                    const categoryBars3 = svg3.selectAll(".bar3");
+                    categoryBars3.style("display", "block");
+                }
+
+                uniqueCategories3.forEach((category3, i) => {
+                    legend3.append("div")
+                        .html(`<div class="legend-color3" style="background-color: ${colorScale3(category3)};"></div>${category3}`)
+                        .on("click", () => toggleCategory(category3));
+                });
+
+                function toggleCategory(category3) {
+                    const categoryBars3 = svg3.selectAll(".bar3");
+                    if (category3 === "All") {
+                        categoryBars3.style("display", "block");
+                    } else {
+                        categoryBars3.style("display", (d3, i) => d3.major_category3 === category3 ? "block" : "none");
+                    }
+                }
+            });
+        </script>
+    </body>
+
+    </html>
+
+    <h2>Beyond the Bachelors</h2>
+    <div>After cosmetology and drama, the majors who are the most likely to end up stuck in very low-wage jobs are
+        graduates in clinical psychology. About 30 percent of them work in such jobs; overall, the median wage for
+        recent psychology graduates is just $25,000, making them among the lowest paid of any major.
+        <br>
+        <div>But that figure is misleading. More than three-quarters of clinical psychology majors go on to graduate
+            school, and those that do enjoy a substantial earnings premium. Among clinical psychology majors ages 25 and
+            up, those with graduate degrees earned a median wage of $70,000, 52 percent more than the $46,000 earned by
+            those without an advanced degree.</div>
+    </div>
+    <br>
+    <div>In some fields, the graduate-school premium is even higher. Pre-med students (technically, "health and medical
+        preparatory programs") earn a median salary of $135,000 if they successfully go on to medical school or other
+        graduate programs, but just $51,000 if they don't. Other biology and science majors also enjoy huge premiums,
+        likely because many of them, too, go on to medical school.
+    </div>
+    <br>
+    <div>Here, the standard rules of economic incentives are in full force: In fields where graduates get a big
+        financial boost by going to graduate school, more of them do so. The biggest exceptions are in the education
+        field: School counselors and administrators are among the most likely to go to graduate school, but get only a
+        modest boost in pay by doing so.
+
+    </div>
+
+    </html>
