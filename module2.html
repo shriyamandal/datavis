@@ -108,7 +108,7 @@
                 .append("g")
                 .attr("transform", `translate(${margin2.left2}, ${margin2.top2})`);
 
-            d3.csv("recent-grads.csv", function (d2) {
+            d3.csv("https://raw.githubusercontent.com/shriyamandal/module2/main/recent-grads.csv", function (d2) {
                 return {
                     major2: d2['Major'],
                     median_salary2: +d2['Median'],
@@ -347,7 +347,7 @@
                 .append("g")
                 .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-            d3.csv("women-stem.csv", function (d) {
+            d3.csv("https://raw.githubusercontent.com/shriyamandal/module2/main/women-stem.csv", function (d) {
                 return {
                     men: +d['Men'],
                     women: +d['Women'],
@@ -552,7 +552,7 @@
                 .append("g")
                 .attr("transform", `translate(${margin3.left}, ${margin3.top})`);
 
-            d3.csv("recent-grads.csv", function (d3) {
+            d3.csv("https://raw.githubusercontent.com/shriyamandal/module2/main/recent-grads.csv", function (d3) {
                 return {
                     major3: d3['Major'],
                     major_category3: d3['Major_category'],
