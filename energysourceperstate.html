@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- load d3.js -->
+<style>
+    /* Apply styles to the <p> element */
+    p {
+        font-family: Arial, sans-serif; /* Set the font family */
+        font-size: 16px; /* Set the font size */
+        line-height: 1.5; /* Set line height for better readability */
+        color: #333; /* Set text color */
+        margin: 0; /* Remove default margins */
+        padding: 10px; /* Add padding for spacing */
+	}
+
+		/* Apply styles to the legend container */
+		#legend {
+        display: flex;
+        flex-direction: column;
+        margin-top: 20px; /* Add "px" here */
+        margin-left: 1000px;
+        border: 1px solid #ccc;
+    }
+</style>
+<script src="https://d3js.org/d3.v6.js"></script>
+<div>
+</div>
+
+  <label for="stateSelect">Select State:</label>
+  <select id="stateSelect">
+    <!-- Add options for different states here -->
+    <option value="Select State" selected>Select State</option>
+    <!-- Add more state options as needed -->
+  </select>
+</div>
+<div id="chart"></div>
+<div id="legend"><div>
+
+<script>
+const margin = {top: 50, right: 50, bottom: 50, left: 80}, width = 1000 - margin.left - margin.right, height = 800 - margin.top - margin.bottom; // Define the margins for the first chart.
+const svg = d3.select("#chart") // Select the first chart.
+.append("svg") // Append an svg element to the first chart div.
+.attr("width", width + margin.left + margin.right) // Define the width of the chart using the margins and the defined width.
+.attr("height", height + margin.top + margin.bottom) // Define the height of the chart using the margins and the defined height.
+.append("g") // Append a g element.
+.attr("transform", `translate(${margin.left}, ${margin.top})`); // Place the chart into the margins.
+d3.csv("https://raw.githubusercontent.com/acarters/DataVisEnergyProject/main/energy.csv", function(d) //Load the data from the csv.
+{
+	return { // Define our data elements from the dataset. 
+		year: d["Year"],
+		state: d["State"],
+		/*coalComm: d["Consumption.Commercial.Coal"],
+		coalElec: d["Consumption.Electric Power.Coal"],
+		coalInd: d["Consumption.Industrial.Coal"],
+		coalRef: d["Consumption.Refinery.Coal"],
+		coalRes: d["Consumption.Residential.Coal"],
+		coalTrans: d["Consumption.Transportation.Coal"],
+		*/
+		coal: +d["Consumption.Commercial.Coal"] + +d["Consumption.Electric Power.Coal"] + +d["Consumption.Industrial.Coal"] + +d["Consumption.Refinery.Coal"] + +d["Consumption.Residential.Coal"] + +d["Consumption.Transportation.Coal"],
+		distFuelOil: +d["Consumption.Commercial.Distillate Fuel Oil"] + +d["Consumption.Electric Power.Distillate Fuel Oil"] + +d["Consumption.Industrial.Distillate Fuel Oil"] + +d["Consumption.Refinery.Distillate Fuel Oil"] + +d["Consumption.Residential.Distillate Fuel Oil"] + +d["Consumption.Transportation.Distillate Fuel Oil"],
+		geothermal: +d["Consumption.Commercial.Geothermal"] + +d["Consumption.Industrial.Geothermal"],
+		hydropower: +d["Consumption.Commercial.Hydropower"] + +d["Consumption.Industrial.Hydropower"],
+		kerosene: +d["Consumption.Commercial.Kerosene"] + +d["Consumption.Industrial.Kerosene"] + +d["Consumption.Residential.Kerosene"],
+		petroleum: +d["Consumption.Commercial.Petroleum"] + +d["Consumption.Industrial.Petroleum"] + +d["Consumption.Residential.Petroleum"] + +d["Consumption.Transportation.Petroleum"],
+		naturalGas: +d["Consumption.Commercial.Natural Gas"] + +d["Consumption.Electric Power.Natural Gas"] + +d["Consumption.Industrial.Natural Gas"] + +d["Consumption.Refinery.Natural Gas"] + +d["Consumption.Residential.Natural Gas"] + +d["Consumption.Transportation.Natural Gas"],
+		solar: +d["Consumption.Commercial.Solar"] + +d["Consumption.Industrial.Solar"],
+		wind: +d["Consumption.Commercial.Wind"] + +d["Consumption.Industrial.Wind"],
+		wood: +d["Consumption.Commercial.Wood"] + +d["Consumption.Electric Power.Wood"] + +d["Consumption.Industrial.Wood"] + +d["Consumption.Residential.Wood"],
+		otherPetrol: +d["Consumption.Industrial.Other Petroleum Products"]
+
+	};
+}).then( function(data) 
+{		
+	var minValue = 1000;
+	var thisState = "Select State"; // Currently hard-coded state value. Change this to get graphs for other states.
+	var stateData = data.filter(d => d.state == thisState);
+	const data1987 = data.filter(d => d.year == 1987); // Just the data for 1987. Arbitrary year, but this ensures we can populate drop-down with only one value per state.
+	
+	var dropDown = d3.select("#stateSelect")
+	.on('change', function() 
+    {	
+        svg.selectAll("g").remove();
+        svg.selectAll("path").remove();
+		svg.selectAll("line").remove();
+		svg.selectAll("text").remove();
+        
+        thisState = d3.select(this).property('value');
+        stateData = data.filter(d => d.state == thisState);
+		
+		svg.append("text") // Add a new text element to the chart, the title.
+		.text("Sources of Power Consumption in " + thisState + " by Year") // Edit the text of the title.
+		.attr("x", 0) // Position the title on the x-axis.
+		.attr("y", -20) // Position the title on the y-axis.
+		.attr("font-size","20px") // Set the font size.
+		.attr("font-family", "sans-serif") // Set the font.
+		.attr("font-weight", "bold"); // Make the text bold
+		
+		svg.append("text") // Add a new text element to the chart, the x-axis label.
+		.text("Year") // Edit the text of the label.
+		.attr("x", 420) // Position the label on the x-axis.
+		.attr("y", 735) // Position the label on the y-axis.
+		.attr("font-family", "sans-serif") // Set the font.
+		.attr("font-style", "italic"); // Make the text italic.
+			
+		svg.append("text") // Add a new text element to the chart, the y-axis label.
+		.text("Consumption (in billions BTU)") // Edit the text of the label.
+		.attr("x", -400) // Position the label on the x-axis.
+		.attr("y", -60) // Position the label on the y-axis.
+		.attr("transform", "rotate(-90)") // Rotate the text 90 degrees.
+		.attr("font-family", "sans-serif") // Set the font.
+		.attr("font-style", "italic"); // Make the text italic.	
+        
+        const x = d3.scaleTime() // Create the x-axis by scaling by time values that will be initialized with the dates given.
+        .domain([new Date(d3.min(data, d=> d.year)),new Date(d3.max(data, d=> d.year))]) // Creates new dates equal to the years given by the csv and use the min and max as the domain bounds.
+        .range([0, width]); // Make the graph as large as the defined width. 
+    
+        const y = d3.scaleLinear() // Create the y-axis by scaling linear.
+        .domain([d3.max(stateData, d=> Math.max(d.coal, d.distFuelOil, d.geothermal, d.hydropower, d.kerosene, d.petroleum, d.naturalGas, d.solar, d.wind, d.wood, d.otherPetrol)), 0]) // Create the domain bounds based on the rounds.
+        .range([0, height]); // Make the graph as large as the defined height.
+
+		const fuelTypes = ["Coal", "Dist. Fuel Oil", "Geothermal", "Hydropower", "Kerosene", "Petroleum", "Natural Gas", "Solar", "Wind", "Wood", "Other Petrol"];
+    	const colors = ["black", "pink", "blue", "grey", "teal", "red", "lime", "yellow", "purple", "orange", "brown"];
+
+		const legendContainer = document.getElementById("legend");
+		legendContainer.style.marginTop = "auto"; // Reset the top margin
+		legendContainer.style.marginLeft = "1000px"; // Add this line to move the legend container to the right
+		legendContainer.style.transform = `translate(0, ${-height}px)`;
+		legendContainer.style.border = "none";
+
+		const legend = d3.select(legendContainer)
+			.selectAll(".legend")
+			.data(fuelTypes)
+			.enter().append("g")
+			.attr("class", "legend")
+			.style("display", "flex")
+			.style("align-items", "center")
+			.style("margin-bottom", "5px")
+			.style("font-family", "sans-serif")
+			.style("font-size", "12px")
+
+
+		legend.append("g")
+			.style("width", "18px")
+			.style("height", "18px")
+			.attr("transform", `translate(0, ${height})`)
+			.style("background-color", (d, i) => colors[i]);
+
+		legend.append("span")
+			.text((d, i) => fuelTypes[i])
+			.style("margin-left", "5px")
+        
+        svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x));
+        
+        svg.append("g")
+        .call(d3.axisLeft(y));
+        
+		svg.selectAll("woodLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].wood);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.wood);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.wood <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.attr("stroke", "orange")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("petroleumLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].petroleum);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.petroleum);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.petroleum <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.attr("stroke", "red")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("solarLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].solar);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.solar);
+			}
+			return 0;	
+        })
+		.attr("stroke", "yellow")
+        .attr("stroke-width", 5)
+		.attr("visibility", function(d)
+		{
+			if (d.solar <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		
+		svg.selectAll("geothermalLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].geothermal);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.geothermal);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.geothermal <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+        .attr("stroke", "blue")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("hydropowerLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].hydropower);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.hydropower);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.hydropower <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+        .attr("stroke", "grey")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("keroseneLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].kerosene);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.kerosene);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.kerosene <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+        .attr("stroke", "teal")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("coalLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].coal);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.coal);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.coal <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+        .attr("stroke", "black")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("naturalGasLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].naturalGas);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.naturalGas);
+			}
+			return 0;	
+        })
+				.attr("visibility", function(d)
+		{
+			if (d.naturalGas <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.attr("stroke", "lime")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("otherLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].otherPetrol);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.otherPetrol);
+			}
+			return 0;	
+        })
+		.attr("stroke", "brown")
+        .attr("stroke-width", 5)
+		.attr("visibility", function(d)
+		{
+			if (d.otherPetrol <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		
+		svg.selectAll("distFuelOilLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].distFuelOil);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.distFuelOil);
+			}
+			return 0;	
+        })
+		.attr("stroke", "pink")
+        .attr("stroke-width", 5);
+		
+		svg.selectAll("windLine")
+        .data(stateData)
+        .enter().append("line")
+        .attr("x1", function (d, i) 
+		{
+            if (i > 0) {
+                return x(new Date(stateData[i - 1].year));
+            }
+            return 0;
+        })
+        .attr("x2", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("y1", function (d, i) 
+		{
+            if (i > 0) 
+			{
+                return y(stateData[i - 1].wind);
+            }
+            return 0;
+        })
+        .attr("y2", function (d, i) 
+		{
+			if (i > 0) 
+			{
+				return y(d.wind);
+			}
+			return 0;	
+        })
+		.attr("visibility", function(d)
+		{
+			if (d.wind <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+        .attr("stroke", "purple")
+        .attr("stroke-width", 5);
+			
+		svg.append("g")
+        .selectAll("woodDot")
+		.data(stateData)
+		.enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 5)
+        .attr("cx", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("cy", function (d) 
+		{
+            return y(d.wood);
+        })
+        .attr("fill", "orange")
+		.attr("visibility", function(d)
+		{
+			if (d.wood <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Wood consumed in " + d.year + ": <br>" + d.wood + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		});
+		
+		svg.append("g")
+        .selectAll("windDot")
+		.data(stateData)
+		.enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 5)
+        .attr("cx", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("cy", function (d) 
+		{
+            return y(d.wind);
+        })
+        .attr("fill", "purple")
+		.attr("visibility", function(d)
+		{
+			if (d.wind <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Wind consumed in " + d.year + ": <br>" + d.wind + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		});
+		
+		svg.append("g")
+        .selectAll("solarDot")
+		.data(stateData)
+		.enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 5)
+        .attr("cx", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("cy", function (d) 
+		{
+            return y(d.solar);
+        })
+        .attr("fill", "yellow")
+		.attr("visibility", function(d)
+		{
+			if (d.solar <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6); 
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Solar consumed in " + d.year + ": <br>" + d.solar + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		});
+		
+		svg.append("g")
+        .selectAll(".dot")
+		.data(stateData)
+		.enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 5)
+        .attr("cx", function (d) 
+		{
+            return x(new Date(d.year));
+        })
+        .attr("cy", function (d) 
+		{
+            return y(d.geothermal);
+        })
+        .attr("fill", "blue")
+		.attr("visibility", function(d)
+		{
+			if (d.geothermal <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Geothermal consumed in " + d.year + ": <br>" + d.geothermal + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		});
+		
+		svg.append("g")
+		.selectAll("dot") 
+		.data(stateData) 
+		.join("circle") 
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.coal); 
+		}) 
+		.attr("fill", "black")	
+		.attr("visibility", function(d)
+		{
+			if (d.coal <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6); 
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Coal consumed in " + d.year + ": <br>" + d.coal + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g") 
+		.selectAll("dot") 
+		.data(stateData) 
+		.join("circle") 
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.distFuelOil); 
+		}) 
+		.attr("fill", "pink")
+		.attr("visibility", function(d)
+		{
+			if (d.distFuelOil <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Distillate fuel oil consumed in " + d.year + ": <br>" + d.distFuelOil + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g")
+		.selectAll("dot") 
+		.data(stateData) 
+		.join("circle") 
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.hydropower); 
+		}) 
+		.attr("fill", "grey")
+		.attr("visibility", function(d)
+		{
+			if (d.hydropower <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6); 
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px")
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px")
+			.html("Hydropower consumed in " + d.year + ": <br>" + d.hydropower + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g") 
+		.selectAll("dot")
+		.data(stateData)
+		.join("circle") 
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.petroleum); 
+		}) 
+		.attr("fill", "red")
+		.attr("visibility", function(d)
+		{
+			if (d.petroleum <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d)
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px")
+			.html("Petroleum consumed in " + d.year + ": <br>" + d.petroleum + " billion BTU <br>");			
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g") 
+		.selectAll("dot") 
+		.data(stateData) 
+		.join("circle") 
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.naturalGas); 
+		}) 
+		.attr("fill", "lime")
+		.attr("visibility", function(d)
+		{
+			if (d.naturalGas <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d)
+		{
+			d3.select(this).attr("opacity", 0.6);  
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Natural gas consumed in " + d.year + ": <br>" + d.naturalGas + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g")
+		.selectAll("dot") // Select the dots.
+		.data(stateData) // Use our csv data as the data.
+		.join("circle") // Add circles. These will be our dots.
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); // Set the x value of the dot to be equal to the amount of points on the x axis.
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.kerosene); // Non-Renewable fuel sources
+		}) 
+		.attr("fill", "teal")
+		.attr("visibility", function(d)
+		{
+			if (d.kerosene <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d)
+		{
+			d3.select(this).attr("opacity", 0.6); 
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px")
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Kerosene consumed in " + d.year + ": <br>" + d.kerosene + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+		
+		svg.append("g")
+		.selectAll("dot")
+		.data(stateData)
+		.join("circle")
+		.attr("r", 5)
+		.attr("cx", function (d) 
+		{
+			return x(new Date(d.year)); 
+		}) 
+		.attr("cy", function (d) 
+		{
+			return y(d.otherPetrol); 
+		}) 
+		.attr("fill", "brown")
+		.attr("visibility", function(d)
+		{
+			if (d.otherPetrol <= minValue)
+			{
+				return "hidden";
+			}
+			else
+			{
+				return "visible";
+			}
+		})		
+		.on("mousemove", function (e, d) 
+		{
+			d3.select(this).attr("opacity", 0.6); 
+			return tooltip
+			.style("visibility", "visible")
+			.style("top", (+d3.select(this).attr("cy")) + "px") 
+			.style("left", (+d3.select(this).attr("cx") + 50) + "px") 
+			.html("Other petroleum products consumed in " + d.year + ": <br>" + d.otherPetrol + " billion BTU <br>");
+		})
+		.on("mouseout", function(d)
+		{
+			d3.select(this).attr("opacity", 1);
+			return tooltip
+			.style("visibility", "hidden")
+		})
+    });
+	
+		var tooltip = d3.select("#chart") // Select the chart.
+		.append("div") // Add a new div to the chart.
+		.style("position", "absolute") // Make the tooltip use absolute coordinates.
+		.style("visibility", "hidden") // Make the tooltip hidden by default.
+		.style("background-color", "lightgrey") // Make the tooltip's background color a light grey.
+		.style("padding", "5px") // Give the tooltip 5px of padding.
+		.style("border-radius", "5px") // Give the tooltip a round border.
+		.style("font-family", "sans-serif") // Set the font.
+		.style("text-align", "center") // Center the text of the tooltip.
+		.attr("id", "tooltip") // Set the tooltip's id, allowing it to be easily accessed later.
+
+		var options = dropDown.selectAll("option")
+		.data(data1987)
+		.enter()
+		.append("option")
+		.text(function(d) 
+		{
+			return d.state;
+		})
+		.attr("value", function(d) 
+		{
+			return d.state;
+		});
+})
+</script>
