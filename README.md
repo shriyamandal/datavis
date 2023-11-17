@@ -1,2 +1,1 @@
-# module2
-data vis
+Repo for hosting Data Vis Assignments
