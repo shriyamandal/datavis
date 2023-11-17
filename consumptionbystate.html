@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v6.js"></script>
+
+<!-- Slider -->
+<div>
+    <button id="minus">-</button>
+    <input type="range" name="mySlider" id=mySlider min="1960" max="2019" value="2019" step="1">
+    <button id="plus">+</button>
+    <p>
+        <output id="value">Year: 2019</output>
+    </p>
+</div>
+
+<!-- Sort Buttons -->
+<div>
+    <p>Sort:</p>
+    <button id="alphabeticalSort">Alphabetically</button>
+    <button id="renewableSort">by Renewable</button>
+    <button id="nonrenewableSort">by Nonrenewable</button>
+</div>
+
+<!-- Create a div where the graph will take place -->
+<div id="chart"></div>
+
+<script>
+const margin = {top: 50, right: 50, bottom: 100, left: 80}, width = 1000 - margin.left - margin.right, height = 400 - margin.top - margin.bottom;
+const svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`);
+d3.csv("https://raw.githubusercontent.com/acarters/DataVisEnergyProject/main/energy.csv", function(d) {
+	return {
+		year: d["Year"],
+		state: d["State"],
+		coal: +d["Consumption.Commercial.Coal"] + +d["Consumption.Electric Power.Coal"] + +d["Consumption.Industrial.Coal"] + +d["Consumption.Refinery.Coal"] + +d["Consumption.Residential.Coal"] + +d["Consumption.Transportation.Coal"],
+		distFuelOil: +d["Consumption.Commercial.Distillate Fuel Oil"] + +d["Consumption.Electric Power.Distillate Fuel Oil"] + +d["Consumption.Industrial.Distillate Fuel Oil"] + +d["Consumption.Refinery.Distillate Fuel Oil"] + +d["Consumption.Residential.Distillate Fuel Oil"] + +d["Consumption.Transportation.Distillate Fuel Oil"],
+		geothermal: +d["Consumption.Commercial.Geothermal"] + +d["Consumption.Industrial.Geothermal"],
+		hydropower: +d["Consumption.Commercial.Hydropower"] + +d["Consumption.Industrial.Hydropower"],
+		kerosene: +d["Consumption.Commercial.Kerosene"] + +d["Consumption.Industrial.Kerosene"] + +d["Consumption.Residential.Kerosene"],
+		petroleum: +d["Consumption.Commercial.Petroleum"] + +d["Consumption.Industrial.Petroleum"] + +d["Consumption.Residential.Petroleum"] + +d["Consumption.Transportation.Petroleum"],
+		naturalGas: +d["Consumption.Commercial.Natural Gas"] + +d["Consumption.Electric Power.Natural Gas"] + +d["Consumption.Industrial.Natural Gas"] + +d["Consumption.Refinery.Natural Gas"] + +d["Consumption.Residential.Natural Gas"] + +d["Consumption.Transportation.Natural Gas"],
+		solar: +d["Consumption.Commercial.Solar"] + +d["Consumption.Industrial.Solar"],
+		wind: +d["Consumption.Commercial.Wind"] + +d["Consumption.Industrial.Wind"],
+		wood: +d["Consumption.Commercial.Wood"] + +d["Consumption.Electric Power.Wood"] + +d["Consumption.Industrial.Wood"] + +d["Consumption.Residential.Wood"],
+		otherPetrol: +d["Consumption.Industrial.Other Petroleum Products"]
+	};
+}).then( function(data) {
+
+    groupedData = d3.rollups(data,
+        v => {
+            return {
+                renewable: d3.sum(v, d => d.geothermal + d.hydropower + d.solar + d.wind + d.wood),
+                nonrenewable: d3.sum(v, d => d.coal + d.distFuelOil + d.kerosene + d.petroleum + d.naturalGas + d.otherPetrol)
+            }
+        },
+        d => d.year,
+        d => d.state
+    );
+
+    var sortType = 'alphabetical';
+    var currYear = 2019;
+    aggregatedData = filterData(currYear);
+
+    const title = svg.append("text")
+		.text("Consumption of Renewable and Nonrenewable Energies by State")
+		.attr("x", 0)
+		.attr("y", -20)
+		.attr("font-size","20px")
+		.attr("font-family", "sans-serif")
+		.attr("font-weight", "bold");
+		
+    const xTitle = svg.append("text")
+		.text("State")
+		.attr("x", 420)
+		.attr("y", 335)
+		.attr("font-family", "sans-serif")
+		.attr("font-style", "italic");
+			
+    const yTitle = svg.append("text")
+		.text("Consumption (in billions BTU)")
+		.attr("x", -250)
+		.attr("y", -60)
+		.attr("transform", "rotate(-90)")
+		.attr("font-family", "sans-serif")
+		.attr("font-style", "italic");
+
+    var x = d3.scaleBand()
+                .domain(aggregatedData.map(d => d["state"]))
+                .range([0, width])
+                .padding(.1);
+
+	const y = d3.scaleSqrt()
+                .domain([0, 16000000])
+                .range([height, 0]);
+
+    const color = d3.scaleOrdinal(['red', 'green']);
+
+	svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x))
+        .attr("class", 'xAxis')
+        .selectAll("text")
+        .attr("x", -7)
+        .attr("y", -5)
+        .attr("transform", "rotate(-90)")
+        .style("text-anchor", "end");
+
+	svg.append("g")
+	    .call(d3.axisLeft(y));
+
+    var tooltip = d3.select("#chart")
+                .append("div")
+                .style("position", "absolute")
+                .style("visibility", "hidden")
+                .style("background-color", "lightgrey");
+
+    const barWidth = 7;
+
+
+
+    // ***** BARS!!! *****//
+
+
+    var nonrenewableBars = svg.append("g")
+        .selectAll("dot")
+        .data(aggregatedData)
+        .join("rect")
+        .attr("x", function(d) { return x(d['state']); })
+
+
+
+
+
+        .attr("y", function(d) { return y(d['nonrenewable']); })
+        .attr("height", function(d) { return height - y(d['nonrenewable']); })
+
+
+
+
+
+
+
+        .attr("width", barWidth)
+        .attr("fill", 'red')
+        .on("mouseover", function(e,d) {
+            return tooltip.style("visibility", "visible")
+                          .html(`${d['state']} consumed ${d['nonrenewable']} billion BTU <br>
+                                <font color="red">nonrenewable </font> energy`); 
+        })
+        .on("mousemove", function() { 
+            var coord = d3.pointer(event);
+            return tooltip.style("left", (coord[0]) + "px")
+                          .style("top", (coord[1]+100) + "px"); 
+        })
+        .on("mouseout", function() { return tooltip.style("visibility", "hidden"); })
+
+    var renewableBars = svg.append("g")
+        .selectAll("dot")
+        .data(aggregatedData)
+        .join("rect")
+        .attr("x", function(d) { return x(d['state']) + barWidth; })
+
+
+        // STUFf
+        .attr("y", function(d) { return y(d['renewable']); })
+        .attr("height", function(d) { return height - y(d['renewable']); })
+
+
+
+
+
+        .attr("width", barWidth)
+        .attr("fill", 'green')
+        .on("mouseover", function(e,d) {
+            return tooltip.style("visibility", "visible")
+                          .html(`${d['state']} consumed ${d['nonrenewable']} billion BTU <br>
+                                <font color="green">renewable </font> energy`); 
+        })
+        .on("mousemove", function() { 
+            var coord = d3.pointer(event);
+            return tooltip.style("left", (coord[0]) + "px")
+                          .style("top", (coord[1]+100) + "px"); 
+        })
+        .on("mouseout", function() { return tooltip.style("visibility", "hidden"); })
+
+
+    // *** END BARS!!! ///
+
+
+
+
+
+
+    d3.select("#mySlider").on("input", function(d){
+        currYear = this.value;
+        updateBars()
+    })
+
+    d3.select("#minus").on("mousedown", function(d) {
+        if (currYear > 1960) {
+            currYear -= 1;
+            updateBars()
+        }
+    })
+
+    d3.select("#plus").on("mousedown", function(d) {
+        if (currYear < 2019) {
+            currYear = parseInt(currYear) + 1;
+            updateBars()
+        }
+    })
+
+    d3.select('#alphabeticalSort').on("mousedown", function(d) {
+        sortType = 'alphabetical';
+        updateBars()
+    })
+
+    d3.select('#renewableSort').on("mousedown", function(d) {
+        sortType = 'renewable';
+        updateBars()
+    })
+
+    d3.select('#nonrenewableSort').on("mousedown", function(d) {
+        sortType = 'nonrenewable';
+        updateBars()
+    })
+
+    function filterData(year) {
+        filteredData = d3.filter(groupedData, x => x[0] == year);
+
+        // aggregate country, renewable, nonrenewable after filtering by year
+        aggregatedData = Array.from(filteredData[0][1], ([state, consumption]) => {
+            const obj = {};
+            obj.state = state;
+            obj.renewable = consumption.renewable;
+            obj.nonrenewable = consumption.nonrenewable;
+            return obj;
+        })
+        // console.log(aggregatedData);
+        return aggregatedData.sort((a,b) => d3.ascending(a['state'], b['state']));
+    }
+
+    function updateBars() {
+        d3.select("#value").html("Year: " + currYear);
+        document.getElementById("mySlider").value = currYear;
+
+        aggregatedData = filterData(currYear);
+
+        var sortedData = aggregatedData;
+        if (sortType == 'renewable') {
+            sortedData = aggregatedData.sort((a,b) => d3.descending(a['renewable'], b['renewable']));
+        } else if (sortType == 'nonrenewable') {
+            sortedData = aggregatedData.sort((a,b) => d3.descending(a['nonrenewable'], b['nonrenewable']));
+        }
+        x.domain(sortedData.map(d => d["state"]));
+ 
+        svg.select('.xAxis')
+            .transition()
+            .duration(500)
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .attr("x", -7)
+            .attr("y", -5)
+            .attr("transform", "rotate(-90)")
+            .style("text-anchor", "end");
+
+        nonrenewableBars.data(aggregatedData)
+            .transition()
+            .duration(500)
+            .attr("x", function(d) { return x(d['state']); })
+            .attr("y", function(d) { return y(d['nonrenewable']); })
+            .attr("height", function(d) { return height - y(d['nonrenewable']); })
+
+        renewableBars.data(aggregatedData)
+            .transition()
+            .duration(500)
+            .attr("x", function(d) { return x(d['state']) + barWidth; })
+            .attr("y", function(d) { return y(d['renewable']); })
+            .attr("height", function(d) { return height - y(d['renewable']); })
+    }
+})
+</script>
