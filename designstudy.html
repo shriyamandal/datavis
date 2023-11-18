@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <style>
+        .centered-text {
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+</head>
+
+<head>
+    <style>
+        .normal-text {
+            text-align: left;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="centered-text">
+        <h1>Data Visualization Design Study</h1>
+        <i><b>
+                <div>Carter Scott, Jessica Wang, Shriya Mandal and Logan Stach </div>
+            </b></i>
+    </div>
+</body>
+
+</html>
+
+<div class="normal-text">
+    <h2><b>1. Learning</b></h2>
+    As traditional energy sources such as coal and natural gas are running out, it is important to research into and
+    utilize renewable energy sources. Renewable sources can be replenished, while non-renewables are finite. 85% of the
+    US's energy usage is non-renewable (U.S. Energy Information Administration).
+    It is believed that oil and gas will run out by the end of the century (BP Statistical Review of World Energy,
+    2020).
+    <br><br>
+    In our tool, we would like to focus on how states use renewable energy, trends of renewable energy usage by state
+    and year, and use it to help increase adoption of renewable sources. By looking at historical data, we can identify
+    states who are doing well in renewable energy adoption, and use them as models when creating next generation energy
+    policies that will increase renewable energy adoption countrywide.
+    <div></div>
+
+    <div class="normal-text">
+        <h2><b>2. Winnowing</b></h2>
+        <h3>The Data</h3>
+        <ul>
+            <li>Energy data from the US Government</li>
+            <ul>
+                <li>Historical data from 1960 to 2019, reported as integers and floats</li>
+                <li>Cases without data are reported as 0.</li>
+            </ul>
+        </ul>
+        <ul>
+            <li>Variables include <b>consumption</b>, expenditures, production and prices of different fuel sources over
+                the <b>years</b> in different <b>states</b></li>
+            <ul>
+                <li>Over 3000 rows </li>
+                <li>Consolidate renewable and non-renewable fuel sources</li>
+            </ul>
+        </ul>
+        <ul>
+            <li>Renewable vs Non-Renewable </li>
+            <ul>
+                <li><u>Renewable:</u> geothermal, solar, hydropower, wind, wood </li>
+                <li><u>Non-renewable:</u> coal, distillate fuel oil, kerosene, petroleum, natural gas, and other
+                    petroleum
+                    products
+                </li>
+                <li>Sourced from energy.gov</li>
+            </ul>
+        </ul>
+
+        <div></div>
+
+
+        <div class="normal-text">
+            <h2><b>3. Discover</b></h2>
+            <h3>Task One</h3>
+            <b> On a state-by-state basis, what energy sources are used the most?
+            </b>
+            <ul>
+                <li>Goal: Discover the proportion of energy sources for each state, to determine if certain ones that
+                    are
+                    not renewable can be reduced
+                </li>
+                <li>Means: Plot the amount of each energy type used for each state.</li>
+                <li>Characteristics: Learn what energy sources are dominant in each state
+                </li>
+                <li>Target data: The given energy dataset, the State and Consumption fields</li>
+                <li>Workflow: After data for most recent year becomes available.</li>
+                <li>Roles: The team hired by the Department of Energy.</li>
+            </ul>
+
+            <h3>Task Two</h3>
+            <b>Which states in the United States are using more renewable forms of energy?</b>
+            <ul>
+                <li>Goal: Discover which states are doing the most to improve their renewability</li>
+                <li>Means: Categorize the energy sources by renewability. Compare different states</li>
+                <li>Characteristics: Learn which states are utilizing the most renewable energy in proportion to
+                    non-renewable energy</li>
+                <li>Target data: The given energy dataset, the State and Consumption fields. External data used to
+                    quantify
+                    renewability</li>
+                <li>Workflow: After data for most recent year becomes available.</li>
+                <li>Roles: The team hired by the Department of Energy.</li>
+            </ul>
+
+            <div></div>
+
+            <div class="normal-text">
+                <h2><b>4. Design </b></h2>
+                <h3>Design #1</h3>
+                <img src="https://owo.whats-th.is/2g96DLz.png">
+                <ul>
+                    <li>Focus on a comparison of different states' consumption in a particular year</li>
+                    <li>Provide a comparison between renewable and non-renewable energy sources</li>
+                </ul>
+
+                <h3>Design #2</h3>
+                <img src="https://owo.whats-th.is/65g6tay.png">
+                <img src="https://owo.whats-th.is/9UKzXbh.png">
+                <img src="https://owo.whats-th.is/4tvbkoo.png">
+                <ul>
+                    <li>Focus on consumption for a state and fuel source over the years </li>
+                    <li>Split the types of energy specifically, not just renewable and nonrenewable</li>
+                </ul>
+
+                <h3>Design #3</h3>
+                <img src="https://owo.whats-th.is/6NUztbE.png">
+                <ul>
+                    <li>Focus on comparing consumption of different energy types by a specified state </li>
+                    <li>Provide more detailing on which fuel sources a state consumes most</li>
+                    <li>Provide clear distinction between renewable and non-renewable sources</li>
+                    <div></div>
+                </ul>
+
+
+                <div class="normal-text">
+                    <h2><b>5. Implementation </b></h2>
+                    <h3>Consumption by State</h3>
+                    <img src="https://owo.whats-th.is/AaKUZ3t.png">
+                    <ul>
+                        <li>Y-axis is adjusted to be able to be able to see renewable energy consumption
+                            <ul>
+                                <li>Square root scale</li>
+                            </ul>
+                        </li>
+                        <li>Choice of sorting alphabetically, by renewable consumption, or by nonrenewable consumption
+                        </li>
+                        <li>Ability to select data from a specific year</li>
+                    </ul>
+                    <h4><a href="https://shriyamandal.github.io/datavis/consumptionbystate.html">Try out the
+                            visualization on this page. </a></h4>
+
+                    <h3>Power Sources in Selected State</h3>
+                    <img src="https://owo.whats-th.is/AR1NvuE.png">
+                    <ul>
+                        <li>Select state from a drop-down list
+                            <ul>
+                                <li>Y-axis scales to fit specific state data</li>
+                            </ul>
+                        </li>
+                        <li>Multiple line graphs to characterize different energy sources</li>
+                        <li>Hover over data points to see what energy source it is and exact value.</li>
+                        <li>Data pts under 1 trillion BTU are omitted </li>
+                    </ul>
+                    <h4><a href="https://shriyamandal.github.io/datavis/energysourceperstate.html">Try out the
+                            visualization on this page. </a></h4>
+
+
+                    <h3>Bonus Graph</h3>
+                    <img src="https://owo.whats-th.is/5WnRpL5.png">
+                    <ul>
+                        <li>Renewable vs non-renewable consumption in a selected state
+                        </li>
+                    </ul>
+                    <h4><a href="https://shriyamandal.github.io/datavis/renewablevsnonrenewable.html">Try out the
+                            visualization on this page. </a></h4>
+
+                    <div></div>
+
+                    <div class="normal-text">
+                        <h2><b>6. Deploy </b></h2>
+                        <h3>How do our designs answer our questions?</h3>
+                        <h4>On a state-by-state basis, what energy sources are used the most?</h4>
+                        <ul>
+                            <li>Our design allows us to directly select a specific state and see the consumption of
+                                different energy sources</li>
+                            <li>NC: petroleum is clearly the energy source that is used the most
+                            </li>
+                        </ul>
+
+                        <h4>Which states in the United States are using more renewable forms of energy?</h4>
+                        <ul>
+                            <li>Our design allows the user to compare renewable and non-renewable consumption among the
+                                different states</li>
+                            <li>We provide a sort function to easily rank the states </li>
+                            <li>GA and CA have the highest renewable energy consumption
+                            </li>
+                        </ul>
+                        <div></div>
+
+
+                        <div class="normal-text">
+                            <h2><b>7. Iteration: Improving our Analysis by Considering Population </b></h2>
+                            <h3>A New Design</h3>
+                            <img src="https://owo.whats-th.is/4igj8rm.png">
+                            <h3>Re-Implement</h3>
+                            <img src="https://owo.whats-th.is/8RupM2n.png">
+                            <h4><a href="https://shriyamandal.github.io/datavis/consumptionbystate_capita.html">Try out
+                                    the improved visualization on this page. </a></h4>
+                            <div></div>
+
+                            <h3>Re-Deploy: What Can We Do with this New Info? </h3>
+                            <h4>How does the new design answer our question?</h4>
+                            <ul>
+                                <li>Evaluate energy use per person</li>
+                                <li>Remove bias against more-populous states
+                                </li>
+                            </ul>
+
+                            <h4>Evaluate ways to reduce both non-renewable and overall energy use </h4>
+                            <ul>
+                                <li>Recommend that governments model after states using more renewables</li>
+                                <li>Model after states that use less energy overall per person also
+                                </li>
+                            </ul>
+
+                            <h4>Winners</h4>
+                            <ul>
+                                <li>D.C. uses the least energy per person</li>
+                                <li>D.C. uses the least non-renewable per person </li>
+                                <li>Maine uses the most renewable per person</li>
+                            </ul>
+
+
+                            <h4>Losers</h4>
+                            <ul>
+                                <li>Wyoming uses the most energy per person </li>
+                                <li>Wyoming uses the most non-renewable per person</li>
+                                <li>D.C. uses the least renewable per person
+                                </li>
+                            </ul>
+
+
+                            <div></div>
+
+
+                            <div class="normal-text">
+                                <h2><b>8. Reflect Part 1 </b></h2>
+                                <h3>Reflection</h3>
+                                <ul>
+                                    <li>Most states have numbers for non-renewable energy usage that dwarfs renewable,
+                                        but
+                                        most
+                                        states are making progress in utilizing non-renewable energy (although not
+                                        enough)
+                                    </li>
+                                    <li>In some cases, it's a factor of hundreds to one</li>
+                                    <li>Maine seems to be far and away the best when it comes to proportional usage</li>
+                                    <li>States with the highest non renewable energy usage per capita are states with
+                                        low
+                                        populations and large fuel-based industries, such as Alaska</li>
+                                    <li>Even after accounting for population, Texas nonrenewable usage is still high
+                                    </li>
+                                    <li>To ensure long-term fuel usability, states should try to bring their renewable
+                                        and
+                                        nonrenewable usage closer to parity. </li>
+                                </ul>
+
+                                <h3>Policy Recommendations</h3>
+                                1. When choosing states as a model: we can look at Maine.
+                                <ul>
+                                    <li>In the most recent years, Maine used renewable energy ~3 times less than
+                                        non-renewable
+                                        energy. It used it be ~7 times less in the 1970s</li>
+                                    <li>Maine uses wood as their 2nd most used fuel source</li>
+                                    <li>Recommend studying further into how Maine is able to utilize renewable energy
+                                    </li>
+                                    <li>Is this possible for other states? Maine has a low population (1.4 million) and
+                                        90%
+                                        of
+                                        Maine is forested (Maine TREE Organization)
+                                    </li>
+                                </ul>
+
+                                2. Texas used 224.95 times more non-renewable energy than renewable in 2019.
+                                <ul>
+                                    <li>6th highest non-renewable energy usage value in the country per capita
+                                    </li>
+                                    <li>Highest non-renewable usage in 2019: Petroleum (7 quadrillion BTU)</li>
+                                    <li>Highest renewable usage in 2019: Wood (64 trillion BTU)</li>
+                                </ul>
+
+                                3. To improve Texas's fuel usage, money should be divested from the petroleum industry
+                                and
+                                towards industries like wood and solar that offer long-term renewability.
+                                <ul>
+                                    <li>Difficult, as petroleum is a large part of Texas's economy</li>
+                                </ul>
+
+
+                                4. We need to account for state population and sources available in the state because
+                                renewable sources are dependent on climate, geography and vegetation.
+
+                                <div></div>
+
+                                <div class="normal-text">
+                                    <h2><b>9. Reflect Part 2</b></h2>
+                                    <h3>Reflecting on our Tool</h3>
+                                    <ul>
+                                        <li>It is important to select relevant variables from the dataset and
+                                            particularly
+                                            compare energy usage through time - can see progress is being made even
+                                            though
+                                            it is slow
+                                        </li>
+                                        <li>Sorting really helps with direct comparisons between qualitative categories
+                                            and
+                                            when there are a lot of things to compare</li>
+                                        <li>Need to showcase a lot of data points and make sure it is user friendly and
+                                            explorable to people with not much background in energy (like policy makers)
+                                        </li>
+                                        <li>Difficult to make visualizations that visually convey the information
+                                            efficiently.</li>
+                                        <ul>
+                                            <li>Had some difficulty on the multiple fuel sources plot, conveying the
+                                                energy
+                                                sources at the bottom of the plot.
+                                            </li>
+                                            <li>Solution: Remove data points below a given threshold. But what's a good
+                                                trade-off between omitting information and readability?
+                                            </li>
+                                        </ul>
+                                    </ul>
+                                    <div></div>
